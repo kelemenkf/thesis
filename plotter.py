@@ -1,18 +1,19 @@
 import numpy as np
+import pandas as pd
 import matplotlib.pyplot as plt
 import math
 from scipy.stats import norm
 
-from multifractal.multifractal import Multifractal as mf
-from multifractal.method_of_moments import MethodOfMoments as mom
-from multifractal.simulator import Simulator as sim
-from multifractal.data_handler import DataHandler as dh
+from repos.multifractal.multifractal import Multifractal
+from repos.multifractal.method_of_moments import MethodOfMoments
+from repos.multifractal.simulator import Simulator
+from repos.multifractal.data_handler import DataHandler
 
 
 class Plotter():
-    def __init__(self, T, t, n, loc, scale, diffusion, drift):
+    def __init__(self, T, dt, n, diffusion, drift, loc=0, scale=1):
         self.T = T
-        self.t = t
+        self.dt = dt
         self.n = n
         self.loc = loc
         self.scale = scale
@@ -20,7 +21,7 @@ class Plotter():
         self.diffusion = diffusion
 
     def get_increments(self):
-        model = sim.Simulator('mmar', T=self.T, dt_scale=self.t, loc=self.l, scale=self.s, diffusion=self.diffusion, drift=self.drift)
+        model = Simulator('mmar', T=self.T, dt_scale=self.dt, loc=self.loc, scale=self.scale, diffusion=self.diffusion, drift=self.drift)
         return model.sim_mmar()[0]
 
 
@@ -31,7 +32,7 @@ class Plotter():
         return R
 
 
-    def plot_returns_pdfs(self, n):
+    def plot_returns_pdfs(self):
         res = self.get_realizations()
         bins = np.histogram(res, bins=math.ceil(np.sqrt(res.size)))
         std = np.std(res)
@@ -40,3 +41,13 @@ class Plotter():
         y = norm.pdf(x, mean, std)
         plt.hist(res, bins[1], density=True)
         plt.plot(x, y, label=f'Normal Distribution\n$\mu={mean}$, $\sigma={std}$')
+
+
+    def plot_scaling_function_bm(self):
+        sample = Simulator(sim_type='bm', diffusion=self.diffusion, drift=self.drift)
+        sample = sample.sim_bm(self.n)[0]
+        sample = pd.DataFrame(sample, columns=['logreturn'])
+        bm_handler = DataHandler(sample, obs_data=False)
+        X, eps = bm_handler.get_data()
+        bm_mom = MethodOfMoments('binomial', X=X, delta_t=eps, q=[0.1,5], gran=0.1)
+        bm_mom.plot_tau_q()
