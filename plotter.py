@@ -8,14 +8,35 @@ from multifractal.method_of_moments import MethodOfMoments as mom
 from multifractal.simulator import Simulator as sim
 from multifractal.data_handler import DataHandler as dh
 
-def get_increments(t):
-    model = sim.Simulator('mmar', T=512, dt_scale=t, loc=l, scale=s, diffusion=diffusion, drift=drift)
-    return model.sim_mmar()[0]
+
+class Plotter():
+    def __init__(self, T, t, n, loc, scale, diffusion, drift):
+        self.T = T
+        self.t = t
+        self.n = n
+        self.loc = loc
+        self.scale = scale
+        self.drift = drift
+        self.diffusion = diffusion
+
+    def get_increments(self):
+        model = sim.Simulator('mmar', T=self.T, dt_scale=self.t, loc=self.l, scale=self.s, diffusion=self.diffusion, drift=self.drift)
+        return model.sim_mmar()[0]
 
 
-def get_realizations(t, n):
-    R = np.array([])
-    while R.size < n:
-        R = np.append(R, get_increments(t))
-    return R
+    def get_realizations(self):
+        R = np.array([])
+        while R.size < self.n:
+            R = np.append(R, self.get_increments())
+        return R
 
+
+    def plot_returns_pdfs(self, n):
+        res = self.get_realizations()
+        bins = np.histogram(res, bins=math.ceil(np.sqrt(res.size)))
+        std = np.std(res)
+        mean = np.mean(res)
+        x = np.linspace(mean - 4*std, mean + 4*std, self.n)
+        y = norm.pdf(x, mean, std)
+        plt.hist(res, bins[1], density=True)
+        plt.plot(x, y, label=f'Normal Distribution\n$\mu={mean}$, $\sigma={std}$')
