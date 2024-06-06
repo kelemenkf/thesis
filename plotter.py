@@ -21,6 +21,7 @@ class Plotter():
         self.drift = drift
         self.diffusion = diffusion
 
+
     def get_increments(self):
         model = Simulator(self.sim_type, T=self.T, dt_scale=self.dt, loc=self.loc, scale=self.scale, diffusion=self.diffusion, drift=self.drift)
         return model.sim_mmar()[0]
@@ -78,3 +79,6 @@ class Plotter():
             axes[i].set_title(f"Return distribution at scale of {increments[i]} days.")
             axes[i].set_xlabel("X(t)")
             axes[i].set_ylabel("Density")
+
+
+    
