@@ -26,6 +26,9 @@ class Plotter():
 
 
     def get_handler(self):
+        '''
+        Initiates a DataHandler for handling data obtained through simulation.
+        '''
         sample = Simulator(sim_type='bm', diffusion=self.diffusion, drift=self.drift)
         sample = sample.sim_bm(self.n)[0]
         sample = pd.DataFrame(sample, columns=['logreturn'])
@@ -34,15 +37,24 @@ class Plotter():
 
 
     def simulated_data(self):
+        '''
+        Returns the simulated data in a format required for multifractal analysis. 
+        '''
         X, eps = self.handler.get_data()
         return X, eps
 
 
     def plot_returns(self, save, path, name):
+        '''
+        Plots with returns simulated through WBM.
+        '''
         self.handler.plot_x_diff(save=save, path=path, name=name)
 
     
     def plot_cumulative_returns(self, save, path, name):
+        '''
+        Plots cumulative returns. 
+        '''
         self.handler.plot_x(save=save, path=path, name=name)
     
 
@@ -56,11 +68,17 @@ class Plotter():
 
 
     def plot_partition_function_bm(self, save=False, path="", name=""):
+        '''
+        Plots the partition function of WBM data. 
+        '''
         bm_mom = MethodOfMoments('binomial', X=self.sim_data[0], delta_t=self.sim_data[1], q=[0.1,5], gran=0.1)
         bm_mom.partition_plot(save=save, renorm=True, path=path, name=name)
 
 
     def plot_multifractal_spectrum_bm(self, save=False, path="", name=""):
+        '''
+        Plots the multifractal specturm of WBM data. 
+        '''
         bm_mom = MethodOfMoments('binomial', X=self.sim_data[0], delta_t=self.sim_data[1], q=[0.1,5], gran=0.1)
         bm_mom.plot_fitted_f_alpha(save=save, path=path, name=name)
 
